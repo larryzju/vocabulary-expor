@@ -1,0 +1,19 @@
+#!/bin/sh
+
+while read line; do 
+	count=3
+	ok=true
+
+	until [ $count == 0 ]; do
+		ok=true
+		dict $line && break
+		ok=false
+		count=$((count-1))
+	done
+
+	if [ ! ok ]; then 
+		echo $line NOT FOUND
+	fi
+
+	echo --------------------------------------------------------------------------------
+done < $*
