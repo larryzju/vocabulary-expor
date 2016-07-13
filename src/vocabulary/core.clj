@@ -2,6 +2,7 @@
   (:require [vocabulary.bing :as bing])
   (:gen-class))
 
+(clojure.java.io/as-file)
 (defn -main [word-file]
   (let [words (-> (slurp word-file)
                   (clojure.string/split-lines))
@@ -13,6 +14,7 @@
          (spit output))
 
     (->> (clojure.java.io/resource "word.css")
+         (slurp)
          (spit "word.css"))))
 
 
