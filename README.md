@@ -4,7 +4,10 @@
 
 ## Usage
 
-FIXME
+```shell
+$ lein uberjar
+$ java -jar target/uberjar/vocabulary.bing-0.1.0-SNAPSHOT-standalone.jar <words.txt>
+```
 
 ## License
 
