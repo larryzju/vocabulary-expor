@@ -1,17 +1,14 @@
-# 说明
+# vocabulary.bing
 
-使用下面命令生成对应的 txt, html, mobi 文件
+从 http://dict.bing.com 查询单词并获取释义，可导出成 HTML 文件
 
-```shell
-./build-mobi.sh <word-file-path>
-```
+## Usage
 
-# 依赖
+FIXME
 
-* [aha](https://github.com/theZiz/aha)
-* kindlegen
-* bing_dictionary(gem)
+## License
 
-# 现状
+Copyright © 2016 FIXME
 
-只有最基本的查询和导出功能, mobi 排版不友好
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.
