@@ -1,20 +1,112 @@
 (ns vocabulary.core
-  (:require [vocabulary.bing :as bing])
+  (:require [vocabulary.dictionary :as dict]
+            [vocabulary.utils :as utils]
+            [garden.core :refer [css]]
+            [hiccup.page :as page]
+            [hiccup.core :refer [html]]
+            [vocabulary.dictionary :as dict])  
   (:gen-class))
 
-(defn -main [word-file]
-  (let [words (-> (slurp word-file)
-                  (clojure.string/split-lines))
-        tfmt    (java.text.SimpleDateFormat. "yyyy-MM-dd")
-        now     (java.util.Date.)
-        output  (str "vocabulary-" (.format tfmt now) ".html")]
+(def ^:dynamic *max-retry-count* 3)
 
-    (->> (apply bing/generate-html-page words)
-         (spit output))
+;;; see
+;;; http://stackoverflow.com/questions/1879885/clojure-how-to-to-recur-upon-exception
+(defn try-times*
+  [n thunk]
+  (loop [n n]
+    (if-let [result
+             (try (thunk)
+                  (catch Exception e (when (zero? n) (throw e))))]
+      result
+      (recur (dec n)))))
 
-    (->> (clojure.java.io/resource "word.css")
-         (slurp)
-         (spit "word.css"))))
+(defmacro try-times
+  [n & body]
+  `(try-times* ~n (fn [] ~@body)))
+
+
+(defn- dictionary
+  [id]
+  (dict/get-dictionary id))
+
+
+(defn- search
+  [d word]
+  (try
+    (try-times *max-retry-count* (d word))
+    (catch Exception e (dict/invalid-word word))))
+
+(defn- word-hiccuper [word]
+  [:div#item
+   [:div#word (dict/word word)]
+   [:div#pronounce
+    (for [[id pron] (dict/pronounce word)]
+      [:span {:class id}
+       [:span (get {:en "EN", :us "US"} id)]
+       pron])]
+   [:ul#mean
+    (for [{:keys [pos def]} (dict/mean word)]
+      [:li [:span.pos pos] [:span.def def]])]
+   [:div#sample
+    (for [{:keys [cn en]} (dict/sentences word)]
+      [:ul.sentence [:li#en en] [:li#cn cn]])]])
+
+(defn- generate-css
+  []
+  (css
+   [:body
+    {:font-size "15pt"}]
+   [:#item
+    {:border    "5pt"
+     :background-color "white"}]
+   [:#word
+    {:font-family "Courier"
+     :color       "blue"
+     :font-size   "120%"}]
+   [:#pronounce
+    [:span
+     {:color      "green"
+      :padding    "5pt"
+      :margin     "20pt auto 20pt auto"}]]
+   [:.sentence
+    [:#cn
+     {:color      "grey"}]]
+   [:ul
+    {:margin-left "10pt"}]
+   [:br
+    {:color       "black"}]))
+
+(defn generate-html-page [d words]
+  (page/xhtml
+   [:head
+    [:title "vocabulary"]
+    [:style (generate-css)]
+    [:meta {:charset "UTF-8"}]]
+   [:body
+    (interpose
+     [:hr]
+     (pmap
+      #(word-hiccuper (search d %))
+      words))]))
+
+(defn -main
+  [dictionary-id word-file]
+  (let [words  (clojure.string/split-lines (slurp word-file))
+        tfmt   (java.text.SimpleDateFormat. "yyyy-MM-dd")
+        now    (.format tfmt (java.util.Date.))
+        title  (str "vocabulary-" now)
+        output (str title ".html")
+        dic    (dictionary dictionary-id)]
+    (->> (generate-html-page dic words)
+         (spit output))))
+
+
+
+
+
+
+
+
 
 
 
