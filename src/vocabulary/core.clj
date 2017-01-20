@@ -1,6 +1,5 @@
 (ns vocabulary.core
   (:require [vocabulary.dictionary :as dict]
-            [vocabulary.utils :as utils]
             [garden.core :refer [css]]
             [hiccup.page :as page]
             [hiccup.core :refer [html]]
@@ -37,42 +36,54 @@
     (catch Exception e (dict/invalid-word word))))
 
 (defn- word-hiccuper [word]
-  [:div#item
-   [:div#word (dict/word word)]
-   [:div#pronounce
+  [:div.item
+   [:div.word (dict/word word)]
+   [:div.pronounce.en
     (for [[id pron] (dict/pronounce word)]
-      [:span {:class id}
-       [:span (get {:en "EN", :us "US"} id)]
-       pron])]
-   [:ul#mean
+      [:span.en {:class (get {:en "en", :us "us"} id)} pron])]
+   [:ul.mean
     (for [{:keys [pos def]} (dict/mean word)]
-      [:li [:span.pos pos] [:span.def def]])]
-   [:div#sample
+      [:li [:span.en pos] [:span.cn def]])]
+   [:div.sample
     (for [{:keys [cn en]} (dict/sentences word)]
-      [:ul.sentence [:li#en en] [:li#cn cn]])]])
+      [:ul.sentence [:li.en en] [:li.cn cn]])]])
 
 (defn- generate-css
   []
   (css
+   []
+   
    [:body
     {:font-size "15pt"}]
-   [:#item
-    {:border    "5pt"
-     :background-color "white"}]
-   [:#word
-    {:font-family "Courier"
-     :color       "blue"
-     :font-size   "120%"}]
-   [:#pronounce
+   
+   [:.cn
+    {:font-family "'WenQuanYi Zen Hei Sharp', 'Noto Sans CJK SC Light', 'SimSun'"}]
+   
+   [:.en
+    {:font-family "'Noto Serif', 'Arial'"}]
+
+   [:.pronounce
     [:span
      {:color      "green"
       :padding    "5pt"
       :margin     "20pt auto 20pt auto"}]]
+   
+   [:.item
+    {:border    "5pt"
+     :background-color "white"}]
+   
+   [:.word
+    {:font-family "Courier"
+     :color       "blue"
+     :font-size   "120%"}]
+
    [:.sentence
     [:#cn
      {:color      "grey"}]]
+   
    [:ul
     {:margin-left "10pt"}]
+   
    [:br
     {:color       "black"}]))
 
@@ -99,10 +110,6 @@
         dic    (dictionary dictionary-id)]
     (->> (generate-html-page dic words)
          (spit output))))
-
-
-
-
 
 
 
